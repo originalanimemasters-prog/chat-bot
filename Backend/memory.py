@@ -1,10 +1,20 @@
-chat_history = []
+from database import conn
 
-def add_message(role, content):
-    chat_history.append({
-        "role": role,
-        "content": content
-    })
+def save_message(chat_id, role, content):
 
-def get_history():
-    return chat_history
+    conn.execute(
+        "INSERT INTO messages (chat_id, role, content) VALUES (?, ?, ?)",
+        (chat_id, role, content)
+    )
+
+    conn.commit()
+
+
+def get_chat_history(chat_id):
+
+    cursor = conn.execute(
+        "SELECT role, content FROM messages WHERE chat_id=?",
+        (chat_id,)
+    )
+
+    return cursor.fetchall()

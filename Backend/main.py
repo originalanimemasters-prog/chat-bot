@@ -1,40 +1,41 @@
 from fastapi import FastAPI
-from models import ChatRequest, ChatResponse
+from models import ChatRequest
 from ai_engine import generate_response
-from tools.search import search_web
+from memory import save_message, get_chat_history
+from database import conn
 
 app = FastAPI()
 
-@app.post("/chat", response_model=ChatResponse)
+
+@app.post("/new_chat")
+def new_chat():
+
+    cursor = conn.execute(
+        "INSERT INTO chats (title) VALUES ('New Chat')"
+    )
+
+    conn.commit()
+
+    chat_id = cursor.lastrowid
+
+    return {"chat_id": chat_id}
+
+
+@app.post("/chat")
 def chat(req: ChatRequest):
 
-    user_message = req.message.lower()
+    history = get_chat_history(req.chat_id)
 
-    try:
+    prompt = ""
 
-        if "search" in user_message or "news" in user_message or "latest" in user_message:
+    for role, text in history:
+        prompt += f"{role}: {text}\n"
 
-            web_data = search_web(user_message)
+    prompt += f"user: {req.message}"
 
-            prompt = f"""
-User question: {user_message}
+    reply = generate_response(prompt)
 
-Internet results:
-{web_data}
+    save_message(req.chat_id, "user", req.message)
+    save_message(req.chat_id, "assistant", reply)
 
-Give a helpful answer.
-"""
-
-            reply = generate_response(prompt)
-
-        else:
-
-            reply = generate_response(user_message)
-
-        return ChatResponse(reply=reply)
-
-    except Exception as e:
-
-        print("ERROR:", e)
-
-        return ChatResponse(reply="AI error occurred.")
+    return {"reply": reply}
