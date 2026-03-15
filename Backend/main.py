@@ -3,6 +3,7 @@ from models import ChatRequest
 from ai_engine import generate_response
 from memory import save_message, get_chat_history
 from database import conn
+from fastapi.responses import StreamingResponse
 
 app = FastAPI()
 
@@ -39,8 +40,8 @@ def get_chats():
     return chats
 
 
-@app.post("/chat")
-def chat(req: ChatRequest):
+@app.post("/chat_stream")
+def chat_stream(req: ChatRequest):
 
     history = get_chat_history(req.chat_id)
 
@@ -51,15 +52,21 @@ def chat(req: ChatRequest):
 
     prompt += f"user: {req.message}"
 
-    reply = generate_response(prompt)
+    # AI response with memory
+    response = generate_response(req.message, req.chat_id)
 
+    # save conversation
     save_message(req.chat_id, "user", req.message)
-    save_message(req.chat_id, "assistant", reply)
+    save_message(req.chat_id, "assistant", response)
 
-    return {"reply": reply}
+    async def stream():
+
+        for char in response:
+            yield char
+
+    return StreamingResponse(stream(), media_type="text/plain")
 
 
-# NEW API
 @app.get("/messages/{chat_id}")
 def get_messages(chat_id: int):
 
@@ -77,6 +84,8 @@ def get_messages(chat_id: int):
         })
 
     return messages
+
+
 @app.put("/rename_chat/{chat_id}")
 def rename_chat(chat_id: int, title: str):
 

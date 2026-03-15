@@ -7,16 +7,11 @@ class ApiService {
 
   static Future<int> createNewChat() async {
 
-    final res = await http.post(Uri.parse("$baseUrl/new_chat"));
+    final res = await http.post(
+      Uri.parse("$baseUrl/new_chat")
+    );
 
     return jsonDecode(res.body)["chat_id"];
-  }
-
-  static Future<List<dynamic>> getChats() async {
-
-    final res = await http.get(Uri.parse("$baseUrl/chats"));
-
-    return jsonDecode(res.body);
   }
 
   static Future<String> sendMessage(int chatId, String message) async {
@@ -45,6 +40,27 @@ class ApiService {
     await http.delete(
       Uri.parse("$baseUrl/delete_chat/$id")
     );
+  }
+
+  static Stream<String> streamMessage(int chatId, String message) async* {
+
+    var request = http.Request(
+      "POST",
+      Uri.parse("$baseUrl/chat_stream"),
+    );
+
+    request.headers["Content-Type"] = "application/json";
+
+    request.body = jsonEncode({
+      "chat_id": chatId,
+      "message": message
+    });
+
+    var response = await request.send();
+
+    await for (var chunk in response.stream.transform(utf8.decoder)) {
+      yield chunk;
+    }
   }
 
 }

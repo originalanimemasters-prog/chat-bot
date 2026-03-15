@@ -17,8 +17,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   List<int> chatList = [];
 
-  bool isThinking = false;
-
   ScrollController scrollController = ScrollController();
 
   @override
@@ -50,26 +48,35 @@ class _ChatScreenState extends State<ChatScreen> {
     if(currentChatId == null) return;
 
     setState(() {
+
       chats[currentChatId]!.add({
         "role":"user",
         "text":text
       });
-      isThinking = true;
-    });
 
-    scrollToBottom();
-
-    String reply = await ApiService.sendMessage(currentChatId!, text);
-
-    setState(() {
       chats[currentChatId]!.add({
         "role":"ai",
-        "text":reply
+        "text":""
       });
-      isThinking = false;
+
     });
 
-    scrollToBottom();
+    int aiIndex = chats[currentChatId]!.length - 1;
+
+    await for (String chunk
+        in ApiService.streamMessage(currentChatId!, text)) {
+
+      setState(() {
+
+        chats[currentChatId]![aiIndex]["text"] =
+            chats[currentChatId]![aiIndex]["text"]! + chunk;
+
+      });
+
+      scrollToBottom();
+
+    }
+
   }
 
   void scrollToBottom(){
@@ -279,15 +286,6 @@ class _ChatScreenState extends State<ChatScreen> {
                     },
                   ),
                 ),
-
-                if(isThinking)
-                  Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Text(
-                      "AI is thinking...",
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ),
 
                 MessageInput(onSend: sendMessage)
 

@@ -20,3 +20,6 @@ to run this you need to run the backend in one terminal = uvicorn main:app --rel
  and in second terminal need to run the flutter app for a proper app displa = flutter run -d windows 
 
 ai is already intergated so no need to call ai engien every time flutter run just run backend and flutter , flutter to create a app interface and backend to process evry request and give a corresponding reply for each request
+
+Install Markdown package Flutter project folder me run karo: (flutter pub add flutter_markdown) ,(flutter pub add flutter_highlight),
+(flutter pub add highlight),
