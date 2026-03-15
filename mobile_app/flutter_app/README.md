@@ -16,5 +16,7 @@ For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
 
-<!-- to run this you need to run the backend in one terminal = uvicorn main:app --reload --host 0.0.0.0 --port 8000 -->
-<!--  and in second terminal need to run the flutter app for a proper app displa = flutter run -d windows  -->
+to run this you need to run the backend in one terminal = uvicorn main:app --reload --host 0.0.0.0 --port 8000 
+ and in second terminal need to run the flutter app for a proper app displa = flutter run -d windows 
+
+ai is already intergated so no need to call ai engien every time flutter run just run backend and flutter , flutter to create a app interface and backend to process evry request and give a corresponding reply for each request
